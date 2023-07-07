@@ -1,0 +1,27 @@
+networks:
+  gitlab-br0:
+    name: gitlab-br0
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - gateway: ${SUBNET_PREFIX:?SUBNET_PREFIX required}.1
+        subnet: ${SUBNET_PREFIX}.0/24
+    driver_opts:
+      com.docker.network.bridge.name: gitlab-br0
+
+services:
+  gitlab:
+    container_name: gitlab
+    restart: always
+    image: gitlab/gitlab-ce:latest
+    volumes:
+    - ${DOCKER_APP_BASE_PATH:?DOCKER_APP_BASE_PATH required}/docker/gitlab/config:/etc/gitlab
+    - ${DOCKER_APP_BASE_PATH}/docker/gitlab/logs:/var/log/gitlab
+    - ${DOCKER_APP_BASE_PATH}/docker/gitlab/data:/var/opt/gitlab
+    - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+    ports:
+      - ${GITLAB_PORT:-18888}:80
+    networks:
+      gitlab-br0:
+        ipv4_address: ${SUBNET_PREFIX}.2
